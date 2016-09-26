@@ -16,7 +16,7 @@ for (var i = 0; i < 6; i++) {
     cells[i].push({
       value: randomFib(),
       loc: [i, j],
-      id: i.toString() + j.toString(),
+      id: Math.floor(Math.random() * 1000000),
       clicked: false,
       clickable: true
     })
@@ -77,6 +77,44 @@ function success (cells) {
 }
 
 function replaceCells () {
+  //update data
+  var replace = [];
+  console.log(cells)
+  path.sort((a, b) => {
+    return a.loc[0] < b.loc[0];
+  }).forEach((item) => {
+    var row = item.loc[0];
+    var col = item.loc[1];
+    while (row >= 0 && cells[row][col].clicked) {
+      row--;
+    }
+    console.log('grabbing ' + row, col)
+    var skip = row;
+    if (row !== -1) {
+      cells[item.loc[0]][col] = cells[row][col];
+      while (row > 0) {
+        cells[row][col] = cells[row - 1][col];
+        console.log('shifting' + row + ',' + col)
+        row--;
+      }
+      cells[skip][col].clicked = true;
+      replace.push([row, col]);
+    } else {
+      replace.push(item.loc);
+    }
+  });
+  replace.forEach((oldCell) => {
+    //cells[oldCell[0]][oldCell[1]] = undefined;
+    // {
+    //   value: randomFib(),
+    //   loc: oldCell,
+    //   id: Math.floor(Math.random() * 1000000),
+    //   clicked: false,
+    //   clickable: true
+    // };
+  })
+  console.log(replace)
+  console.log(cells)
   //take out success cells
   d3.selectAll('div')
   .data(path, (d) => d.id)
