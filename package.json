@@ -6,6 +6,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ivtpz/golden-numbers.git"
+  },
+  "author": "Ivey Topaz",
+  "license": "ISC",
+  "dependencies": {
+    "d3": "^4.2.6",
+    "underscore": "^1.8.3"
+  }
 }
