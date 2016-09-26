@@ -17,6 +17,7 @@ for (var i = 0; i < 6; i++) {
       value: randomFib(),
       loc: [i, j],
       id: Math.floor(Math.random() * 1000000),
+      //locID: i.toString() + j.toString(),
       clicked: false,
       clickable: true
     })
@@ -78,46 +79,55 @@ function success (cells) {
 
 function replaceCells () {
   //update data
-  var replace = [];
-  console.log(cells)
+  var shiftCells = [];
+  var locs = []
   path.sort((a, b) => {
-    return a.loc[0] < b.loc[0];
+    return a.loc[0] > b.loc[0];
   }).forEach((item) => {
     var row = item.loc[0];
     var col = item.loc[1];
-    while (row >= 0 && cells[row][col].clicked) {
+    cells[row][col] = undefined;
+    row--;
+    while (row >= 0 && cells[row][col] !== undefined) {
+      cells[row + 1][col] = cells[row][col];
+      cells[row + 1][col].loc = [row + 1, col]
+      cells[row][col] = undefined;
+      if (shiftCells.indexOf(cells[row + 1][col].id) === -1) {
+        locs.push(cells[row + 1][col].loc)
+        shiftCells.push(cells[row + 1][col]);
+      }
       row--;
     }
-    console.log('grabbing ' + row, col)
-    var skip = row;
-    if (row !== -1) {
-      cells[item.loc[0]][col] = cells[row][col];
-      while (row > 0) {
-        cells[row][col] = cells[row - 1][col];
-        console.log('shifting' + row + ',' + col)
-        row--;
-      }
-      cells[skip][col].clicked = true;
-      replace.push([row, col]);
-    } else {
-      replace.push(item.loc);
-    }
   });
-  replace.forEach((oldCell) => {
-    //cells[oldCell[0]][oldCell[1]] = undefined;
-    // {
-    //   value: randomFib(),
-    //   loc: oldCell,
-    //   id: Math.floor(Math.random() * 1000000),
-    //   clicked: false,
-    //   clickable: true
-    // };
-  })
-  console.log(replace)
-  console.log(cells)
+  for (var i = 0; i < cells.length ; i++) {
+    for(var j = 0; j < cells[i].length; j++) {
+      if (cells[i][j] === undefined) {
+        console.log("update")
+        cells[i][j] = {
+          value: randomFib(),
+          loc: [i, j],
+          id: Math.floor(Math.random() * 1000000),
+          clicked: false,
+          clickable: true
+        };
+      }
+    }
+  }
   //take out success cells
+  //  d3.selectAll('td')
+  // .data(path, (d) => d.id)
+  // .remove()
+
   d3.selectAll('div')
   .data(path, (d) => d.id)
+  .remove()
+  //take out shifting cells
+  // d3.selectAll('td')
+  // .data(shiftCells, (d) => d.id)
+  // .remove()
+
+  d3.selectAll('div')
+  .data(shiftCells, (d) => d.id)
   .remove()
 }
 
@@ -130,8 +140,11 @@ function reset () {
       cell.clicked = false;
     })
   })
-  cellColor.style('background-image', (d) => `url(${d.value}.png)`);
-  cellSelection.style('background', 'grey');
+  var concatCells = cells.slice(1).reduce((a, b) => {return a.concat(b)}, cells[0])
+
+  // cellSelection.append('div')
+  // .style('background-image', (d) => `url(${d.value}.png)`)
+
 }
 
 function setClickOptions (item) {
