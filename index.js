@@ -17,23 +17,25 @@ for (var i = 0; i < 6; i++) {
       value: randomFib(),
       loc: [i, j],
       id: Math.floor(Math.random() * 1000000),
-      //locID: i.toString() + j.toString(),
+      locID: i.toString() + j.toString(),
       clicked: false,
       clickable: true
     })
 }
 
 var rowSelction = table.selectAll('tr')
-  .data(rows)
-  .enter()
+  .data(cells)
+
+  rowSelction.enter()
   .append('tr')
 
 
 var cellSelection = rowSelction.selectAll('td')
-  .data(function(d) {
-    return cells[d];
+  .data(function(d, i) {
+    return d;
   })
-  .enter()
+
+cellSelection.enter()
   .append('td')
   .style('background', 'grey')
   .on('mouseover', function(d) {
@@ -66,7 +68,11 @@ var cellSelection = rowSelction.selectAll('td')
   })
 
 
-var cellColor = cellSelection
+var cellColor = cellSelection.selectAll('div')
+  .data((d) => d)
+
+cellColor
+  .enter()
   .append('div')
   .style('background-image', (d) => `url(${d.value}.png)`)
 
@@ -80,70 +86,97 @@ function success (cells) {
 function replaceCells () {
   //update data
   var shiftCells = [];
-  var locs = []
+
   path.sort((a, b) => {
-    return a.loc[0] > b.loc[0];
+    return a.loc[0] - b.loc[0];
   }).forEach((item) => {
+    if(!_.contains(shiftCells, item.locID)) shiftCells.push(item.locID)
     var row = item.loc[0];
     var col = item.loc[1];
     cells[row][col] = undefined;
     row--;
     while (row >= 0 && cells[row][col] !== undefined) {
       cells[row + 1][col] = cells[row][col];
-      cells[row + 1][col].loc = [row + 1, col]
+      cells[row + 1][col].loc = [row + 1, col];
+      cells[row + 1][col].locID = (row + 1).toString() + col.toString();
       cells[row][col] = undefined;
-      if (shiftCells.indexOf(cells[row + 1][col].id) === -1) {
-        locs.push(cells[row + 1][col].loc)
-        shiftCells.push(cells[row + 1][col]);
-      }
+      if(!_.contains(shiftCells, row.toString() + col.toString())) shiftCells.push(row.toString() + col.toString());
       row--;
     }
   });
+
+
   for (var i = 0; i < cells.length ; i++) {
     for(var j = 0; j < cells[i].length; j++) {
       if (cells[i][j] === undefined) {
-        console.log("update")
         cells[i][j] = {
           value: randomFib(),
           loc: [i, j],
           id: Math.floor(Math.random() * 1000000),
+          locID: i.toString() + j.toString(),
           clicked: false,
           clickable: true
         };
       }
     }
   }
-  //take out success cells
-  //  d3.selectAll('td')
-  // .data(path, (d) => d.id)
-  // .remove()
+  return shiftCells.map((loc) => {
+    var arr = loc.split('');
+    return cells[arr[0]][arr[1]];
+  })
+}
+
+function updateBoard (shiftCells) {
+
+  d3.selectAll('div')
+  .data(shiftCells, (d) => d.locID)
+  .attr('class', 'remove')
 
   d3.selectAll('div')
   .data(path, (d) => d.id)
-  .remove()
-  //take out shifting cells
-  // d3.selectAll('td')
+  .attr('class', 'remove')
+
+  //.style('background-image', (d) => `url(${d.value}.png)`)
+
+
+  // d3.selectAll('div')
   // .data(shiftCells, (d) => d.id)
   // .remove()
 
-  d3.selectAll('div')
-  .data(shiftCells, (d) => d.id)
-  .remove()
+  //fill empty cells
+  console.log(cells)
+  //cellSelection.
+  // d3.selectAll('tr')
+  // .data(cells)
+  // .selectAll('td')
+  // .data((d) => {
+  //   console.log(d)
+  //   return d;
+  // })
+  // .style('background', 'grey')
+  // .selectAll('div.remove')
+  // .data((d) => d)
+  // .style('background-image', null)
+  // .style('background-image', function(d) {
+  //   console.log(d)
+  //   return `url(${d.value}.png)`;
+  // })
+  //.attr('class', null)
+
+
 }
 
 function reset () {
-  replaceCells();
-  path = [];
+  var shiftCells = replaceCells();
   cells.forEach((row) => {
     row.forEach((cell) => {
       cell.clickable = true;
       cell.clicked = false;
     })
   })
-  var concatCells = cells.slice(1).reduce((a, b) => {return a.concat(b)}, cells[0])
-
-  // cellSelection.append('div')
-  // .style('background-image', (d) => `url(${d.value}.png)`)
+  console.log(cells)
+  updateBoard(shiftCells);
+  path = [];
 
 }
 
